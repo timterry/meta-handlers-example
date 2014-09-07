@@ -3,12 +3,12 @@
   (:use ring.adapter.jetty)
   (:use ring.middleware.reload)
   (:use [clojure.tools.logging :only (debug info error)])
-  (:require [ring.middleware.params :as params]
+  (:require [com.terry.metadata-controllers.integration.middleware :as middleware]
+            [ring.middleware.params :as params]
             [ring.util.response     :as response]
             [compojure.route :as route]
             [compojure.handler :as handler]
-            [selmer.parser :refer (render-file)]
-            ))
+            [selmer.parser :refer (render-file)]))
 
 (defn wrap-logging [handler]
   "wrap the request and add some logging"
@@ -50,8 +50,13 @@
            (route/resources "/")
            (route/not-found "Page not found"))
 
+;(handler/site main-routes)
 (def app
-  (-> (handler/site main-routes) (wrap-logging) (wrap-exception)))
+  (-> handler
+      #(middleware/wrap-front-controller 'com.terry.metadata-controllers.integration.web)
+      ;(wrap-logging)
+      ;(wrap-exception)
+      ))
 
 (defn init []
   (selmer.parser/cache-off!)

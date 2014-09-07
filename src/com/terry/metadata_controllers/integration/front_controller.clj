@@ -25,12 +25,15 @@
       (:function mapping))))
 
 (defn find-handler [request mappings]
-  (let [url (:url request)
-        http-method (:method request)
-        matched-handler (some #(handler-match url http-method %) mappings)]
+  (let [uri (:uri request)
+        http-method (:request-method request)
+        matched-handler (some #(handler-match uri http-method %) mappings)]
     matched-handler))
 
 (defn handle [request namespace]
   (let [mappings (scan-namespace namespace)
         matched-handler (find-handler request mappings)]
-    matched-handler))
+    (matched-handler request)))
+
+;(def request {:uri "/test.html" :request-method :get})
+;(handle request 'com.terry.metadata-controllers.integration.web)
