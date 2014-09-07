@@ -9,8 +9,7 @@
     (when (fn? var)
       (let [meta-data (meta value)]
         (when (has-http-method? meta-data)
-          {:function var :meta-data {:get (:get meta-data)}}
-          )))))
+          (assoc {:function var} :meta-data meta-data))))))
 
 (defn create-mapping [item]
   (when-let [controller-data (controller? item)]
@@ -18,4 +17,20 @@
 
 (defn scan-namespace [namespace]
   (let [ns-items (ns-publics namespace)]
-    (doall (map create-mapping ns-items))))
+    (doall (remove nil? (map create-mapping ns-items)))))
+
+(defn handler-match [url http-method mapping]
+  (when-let [mapping-url (http-method (:meta-data mapping))]
+    (when (= mapping-url url)
+      (:function mapping))))
+
+(defn find-handler [request mappings]
+  (let [url (:url request)
+        http-method (:method request)
+        matched-handler (some #(handler-match url http-method %) mappings)]
+    matched-handler))
+
+(defn handle [request namespace]
+  (let [mappings (scan-namespace namespace)
+        matched-handler (find-handler request mappings)]
+    matched-handler))
