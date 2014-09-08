@@ -4,17 +4,18 @@
   (:use ring.middleware.reload)
   (:use [clojure.tools.logging :only (debug info error)])
   (:require [com.terry.metadata-controllers.integration.middleware :as middleware]
+            [com.terry.metadata-controllers.integration.front-controller :as front-controller]
             [ring.middleware.params :as params]
             [ring.util.response     :as response]
             [compojure.route :as route]
             [compojure.handler :as handler]
             [selmer.parser :refer (render-file)]))
 
-(defn wrap-logging [handler]
+(def wrap-logging
   "wrap the request and add some logging"
   (fn [request]
     (info (str "Processing request " (:uri request)) )
-    (handler request)))
+    request))
 
 (defn render-response [template data]
   "We need to put the html data inside a map in the format that ring middleware requires. The html body must be in the 'body' key."
@@ -51,10 +52,10 @@
            (route/not-found "Page not found"))
 
 ;(handler/site main-routes)
-(def app
-  (-> handler
-      #(middleware/wrap-front-controller 'com.terry.metadata-controllers.integration.web)
-      ;(wrap-logging)
+(defn app [request]
+  (-> request
+      (wrap-logging)
+      (front-controller/handle 'com.terry.metadata-controllers.integration.web)
       ;(wrap-exception)
       ))
 
