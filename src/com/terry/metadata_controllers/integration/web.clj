@@ -45,6 +45,9 @@
 (defn ^{:get "/test.html"} test-page [request]
   (render-response "templates/test.html" request))
 
+(defn ^{:get "/perf-test.html"} test-page2 [request]
+  {:body "test" :status 200})
+
 (defroutes main-routes
            "Define URL to handler mappings"
            (GET "/" request  (index-page request))
