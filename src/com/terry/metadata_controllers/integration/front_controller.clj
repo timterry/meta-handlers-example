@@ -35,6 +35,8 @@
   [url http-method mapping]
   (when-let [mapping-url (http-method (:meta-data mapping))]
     (when (= mapping-url url)
+      (:function mapping))
+    (when (and (instance? java.util.regex.Pattern mapping-url) (re-matches mapping-url url))
       (:function mapping))))
 
 (defn find-handler [request mappings]
@@ -42,6 +44,16 @@
         http-method (:request-method request)
         matched-handler (some #(handler-match uri http-method %) mappings)]
     matched-handler))
+
+(defn sort-key-fn [mapping]
+  (let [url-path (val (first (:meta-data mapping)))]
+    return url-path))
+
+(defn sort-comparator [a b]
+  #(instance? java.util.regex.Pattern))
+
+(defn sort-mappings [mappings]
+  (sort-by sort-key-fn (comparator sort-comparator) mappings))
 
 (defn get-mappings
   "returns all handler mappings, caching can be specified to speed up subsequent requests"
@@ -64,7 +76,7 @@
 
 (defn perf-test [n cache?]
   (let [req {:uri "/perf-test.html" :request-method :get}
-        nses ['com.terry.metadata-controllers.integration.web]]
+        nses ['com.terry.metadata-controllers.integration.web 'com.terry.metadata-controllers.integration.web2]]
     (time (doall (for [i (range n)] (handle req nses :cache? cache?))))
     0
   ))
