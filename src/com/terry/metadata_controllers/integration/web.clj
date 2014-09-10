@@ -48,6 +48,10 @@
 (defn ^{:get "/perf-test.html"} test-page2 [request]
   {:body "test" :status 200})
 
+(defn ^{:get #".*\.html"} test-page3 [request]
+  {:body "test regex" :status 200})
+
+
 (defroutes main-routes
            "Define URL to handler mappings"
            (GET "/" request  (index-page request))
